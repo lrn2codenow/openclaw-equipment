@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Getware — The Package Manager for AI Agents
 
-## Getting Started
+Find, download, and install tools, software, models, and resources for AI agents. Distributed peer-to-peer via WebTorrent.
 
-First, run the development server:
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run seed    # Populate 200+ packages
+npm run dev     # Start on http://localhost:3800
+npm test        # Run 49 tests
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Architecture
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Next.js 16** (TypeScript, App Router, Turbopack) — Frontend + API
+- **SQLite** (better-sqlite3) — Package registry database
+- **Tailwind CSS** — Dark theme with emerald accent
+- **WebTorrent** — P2P downloads in the browser
+- **WebMCP** — Structured tool registration for AI agents
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Pages
 
-## Learn More
+| Page | Route | Description |
+|------|-------|-------------|
+| Landing | `/` | Hero, search, featured packages, categories, stats |
+| Browse | `/browse` | Search + filter by category, platform, compatibility |
+| Package Detail | `/package/[slug]` | Full details, install, versions, reviews |
+| Downloads | `/downloads` | Active WebTorrent downloads manager |
+| Publish | `/publish` | Multi-step form to publish packages |
+| Categories | `/categories` | Browse by category with popular packages |
+| About | `/about` | How Getware, WebMCP, and WebTorrent work |
+| API Docs | `/docs` | REST API + WebMCP tool reference |
 
-To learn more about Next.js, take a look at the following resources:
+## API Endpoints
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+GET  /api/search?q=...&category=...&platform=...&sort=...&limit=...
+GET  /api/package/[slug]
+GET  /api/package/[slug]/versions
+GET  /api/package/[slug]/reviews
+POST /api/package                   (publish)
+POST /api/package/[slug]/reviews    (submit review)
+GET  /api/categories
+GET  /api/trending?timeframe=...&category=...
+GET  /api/stats
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## WebMCP Tools
 
-## Deploy on Vercel
+Tools auto-register via `navigator.modelContext` in Chrome 146+:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+**Global:** `search_packages()`, `get_categories()`, `get_trending()`
+**Package page:** `get_package_details()`, `download_package()`, `get_install_instructions()`, `submit_review()`
+**Downloads page:** `list_downloads()`, `get_download_status()`
+**Publish page:** `publish_package()`
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Seed Data
+
+200+ real packages across 4 categories:
+- **MCP Tools** (65+): GitHub, Slack, Notion, PostgreSQL, Browser Automation, etc.
+- **Software** (70+): Ubuntu, Kali, Node.js, Python, Docker, Ollama, etc.
+- **Models** (35+): Llama 3, Mistral, Stable Diffusion, Whisper, BERT, etc.
+- **Resources** (35+): Docker Compose, Terraform modules, configs, templates
+
+## License
+
+MIT

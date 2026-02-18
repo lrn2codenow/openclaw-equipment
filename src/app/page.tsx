@@ -1,65 +1,111 @@
-import Image from "next/image";
+import { getDb, searchPackages, getCategories, getStats } from '@/lib/db';
+import { formatNumber, type Package, type Category } from '@/lib/utils';
+import PackageCard from '@/components/PackageCard';
+import SearchBar from '@/components/SearchBar';
 
-export default function Home() {
+export default function HomePage() {
+  const stats = getStats();
+  const categories = getCategories() as Category[];
+  const { packages: featured } = searchPackages({ limit: 8, sort: 'downloads' });
+  const featuredPkgs = featured as Package[];
+
+  const categoryIcons: Record<string, string> = {
+    'mcp-tools': '🔧',
+    'software': '💻',
+    'models': '🧠',
+    'resources': '📦',
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div>
+      {/* Hero */}
+      <section className="relative py-20 px-4 text-center overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent" />
+        <div className="relative max-w-3xl mx-auto">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4">
+            The package manager for{' '}
+            <span className="text-emerald-400">AI agents</span>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-lg text-zinc-400 mb-8 max-w-xl mx-auto">
+            Find, download, and install tools, software, models, and resources.
+            Distributed peer-to-peer via WebTorrent.
           </p>
+          <div className="max-w-xl mx-auto">
+            <SearchBar large />
+          </div>
+          <div className="flex items-center justify-center gap-6 mt-8 text-sm text-zinc-500">
+            <span><strong className="text-zinc-300">{formatNumber(stats.total_packages)}</strong> packages</span>
+            <span><strong className="text-zinc-300">{formatNumber(stats.total_downloads)}</strong> downloads</span>
+            <span className="text-emerald-500"><strong>{formatNumber(stats.total_seeders)}</strong> seeders</span>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* Categories */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <h2 className="text-xl font-semibold mb-6">Browse by Category</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          {categories.map((cat) => (
+            <a
+              key={cat.id}
+              href={`/browse?category=${cat.slug}`}
+              className="p-5 rounded-lg border border-zinc-800 bg-zinc-900/50 hover:border-emerald-500/30 hover:bg-zinc-900 transition-all group"
+            >
+              <div className="text-3xl mb-3">{cat.icon || categoryIcons[cat.slug] || '📁'}</div>
+              <h3 className="font-semibold text-sm group-hover:text-emerald-400 transition-colors">{cat.name}</h3>
+              <p className="text-xs text-zinc-500 mt-1">{cat.package_count} packages</p>
+            </a>
+          ))}
         </div>
-      </main>
+      </section>
+
+      {/* Featured Packages */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">Popular Packages</h2>
+          <a href="/browse" className="text-sm text-emerald-400 hover:text-emerald-300">View all →</a>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {featuredPkgs.map((pkg) => (
+            <PackageCard key={pkg.id} pkg={pkg} />
+          ))}
+        </div>
+      </section>
+
+      {/* How it works */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+        <h2 className="text-xl font-semibold mb-6">How It Works</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="p-6 rounded-lg border border-zinc-800 bg-zinc-900/50">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <span className="text-emerald-400">🤖</span> For AI Agents
+            </h3>
+            <div className="text-sm text-zinc-400 space-y-2">
+              <p>Agents interact via WebMCP tools that auto-register in supported browsers:</p>
+              <pre className="bg-zinc-950 p-3 rounded text-xs text-emerald-400 overflow-x-auto">{`// Agent calls:
+search_packages("home assistant mcp")
+// → structured results with ratings
+
+download_package("ha-mcp-server")
+// → P2P download via WebTorrent`}</pre>
+            </div>
+          </div>
+          <div className="p-6 rounded-lg border border-zinc-800 bg-zinc-900/50">
+            <h3 className="font-semibold mb-3 flex items-center gap-2">
+              <span className="text-emerald-400">👤</span> For Humans
+            </h3>
+            <div className="text-sm text-zinc-400 space-y-2">
+              <p>Browse the directory, search for what you need, and download directly in your browser:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Search or browse packages by category</li>
+                <li>Check ratings, reviews, and compatibility</li>
+                <li>Download via WebTorrent P2P — fast and decentralized</li>
+                <li>Publish your own tools for the community</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
