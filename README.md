@@ -1,4 +1,4 @@
-# Getware — The Package Manager for AI Agents
+# ClawTools — The Package Manager for AI Agents
 
 Find, download, and install tools, software, models, and resources for AI agents. Distributed peer-to-peer via WebTorrent.
 
@@ -29,7 +29,7 @@ npm test        # Run 49 tests
 | Downloads | `/downloads` | Active WebTorrent downloads manager |
 | Publish | `/publish` | Multi-step form to publish packages |
 | Categories | `/categories` | Browse by category with popular packages |
-| About | `/about` | How Getware, WebMCP, and WebTorrent work |
+| About | `/about` | How ClawTools, WebMCP, and WebTorrent work |
 | API Docs | `/docs` | REST API + WebMCP tool reference |
 
 ## API Endpoints

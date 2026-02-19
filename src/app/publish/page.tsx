@@ -41,7 +41,7 @@ export default function PublishPage() {
       <div className="max-w-2xl mx-auto px-4 py-16 text-center">
         <div className="text-4xl mb-4">🎉</div>
         <h1 className="text-2xl font-bold mb-2">Package Published!</h1>
-        <p className="text-zinc-400 mb-6">Your package is now live on Getware.</p>
+        <p className="text-zinc-400 mb-6">Your package is now live on OpenClaw Equipment.</p>
         <a href={`/package/${result.slug}`} className="inline-block bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2.5 rounded-lg font-medium transition-colors">
           View Package →
         </a>
@@ -170,9 +170,9 @@ export default function PublishPage() {
             if (!navigator.modelContext || !navigator.modelContext.registerTool) return;
             navigator.modelContext.registerTool({
               name: "publish_package",
-              description: "Publish a new package to Getware",
+              description: "Publish a new package to OpenClaw Equipment",
               inputSchema: { type: "object", properties: { name: {type:"string"}, description: {type:"string"}, category: {type:"string"}, version: {type:"string"}, magnetUri: {type:"string"}, author: {type:"string"}, license: {type:"string"}, sourceUrl: {type:"string"}, tags: {type:"array",items:{type:"string"}} }, required: ["name","description","category","version","magnetUri"] },
-              handler: async (p) => { const r = await fetch('/api/package', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(p) }); return r.json(); }
+              execute: async (p) => { const r = await fetch('/api/package', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(p) }); return r.json(); }
             });
           }
           if (navigator.modelContext) register();

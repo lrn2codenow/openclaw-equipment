@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import { randomUUID } from 'crypto';
 
-const DB_PATH = path.join(process.cwd(), 'getware.db');
+const DB_PATH = path.join(process.cwd(), 'clawtools.db');
 
 // Delete existing DB and recreate
 const fs = require('fs');

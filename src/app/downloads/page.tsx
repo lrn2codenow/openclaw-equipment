@@ -61,8 +61,8 @@ export default function DownloadsPage() {
           function register() {
             if (!navigator.modelContext || !navigator.modelContext.registerTool) return;
             const mc = navigator.modelContext;
-            mc.registerTool({ name: "list_downloads", description: "List active downloads", inputSchema: { type: "object", properties: {} }, handler: async () => ({ downloads: [] }) });
-            mc.registerTool({ name: "get_download_status", description: "Get download status", inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] }, handler: async () => ({ status: "no active downloads" }) });
+            mc.registerTool({ name: "list_downloads", description: "List active downloads", inputSchema: { type: "object", properties: {} }, execute: async () => ({ downloads: [] }) });
+            mc.registerTool({ name: "get_download_status", description: "Get download status", inputSchema: { type: "object", properties: { id: { type: "string" } }, required: ["id"] }, execute: async () => ({ status: "no active downloads" }) });
           }
           if (navigator.modelContext) register();
           else window.addEventListener('modelcontextready', register);

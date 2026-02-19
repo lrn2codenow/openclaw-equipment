@@ -154,25 +154,25 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
               name: "get_package_details",
               description: "Get full details about ${pkg.name}",
               inputSchema: { type: "object", properties: { slug: { type: "string" } } },
-              handler: async (p) => { const r = await fetch('/api/package/' + (p.slug || '${slug}')); return r.json(); }
+              execute: async (p) => { const r = await fetch('/api/package/' + (p.slug || '${slug}')); return r.json(); }
             });
             mc.registerTool({
               name: "download_package",
               description: "Download ${pkg.name} via WebTorrent",
               inputSchema: { type: "object", properties: { slug: { type: "string" }, version: { type: "string" } } },
-              handler: async () => ({ magnet: "${pkg.magnet_uri.replace(/"/g, '\\"')}", status: "ready" })
+              execute: async () => ({ magnet: "${pkg.magnet_uri.replace(/"/g, '\\"')}", status: "ready" })
             });
             mc.registerTool({
               name: "get_install_instructions",
               description: "Get install instructions for ${pkg.name}",
               inputSchema: { type: "object", properties: { slug: { type: "string" }, platform: { type: "string" } } },
-              handler: async () => ({ magnet: "${pkg.magnet_uri.replace(/"/g, '\\"')}", platforms: ${pkg.platform}, instructions: "Download via magnet link and extract" })
+              execute: async () => ({ magnet: "${pkg.magnet_uri.replace(/"/g, '\\"')}", platforms: ${pkg.platform}, instructions: "Download via magnet link and extract" })
             });
             mc.registerTool({
               name: "submit_review",
               description: "Submit a review for ${pkg.name}",
               inputSchema: { type: "object", properties: { rating: { type: "number" }, review: { type: "string" } }, required: ["rating"] },
-              handler: async (p) => { const r = await fetch('/api/package/${slug}/reviews', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(p) }); return r.json(); }
+              execute: async (p) => { const r = await fetch('/api/package/${slug}/reviews', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(p) }); return r.json(); }
             });
           }
           if (navigator.modelContext) register();

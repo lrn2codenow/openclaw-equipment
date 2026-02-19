@@ -2,7 +2,7 @@ import { getCategories, searchPackages } from '@/lib/db';
 import { type Category, type Package, formatNumber } from '@/lib/utils';
 import PackageCard from '@/components/PackageCard';
 
-export const metadata = { title: 'Categories — Getware', description: 'Browse packages by category' };
+export const metadata = { title: 'Categories — OpenClaw Equipment', description: 'Browse packages by category' };
 
 export default function CategoriesPage() {
   const categories = getCategories() as Category[];
@@ -16,7 +16,7 @@ export default function CategoriesPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold mb-2">Categories</h1>
-      <p className="text-zinc-400 text-sm mb-8">Browse the Getware directory by category.</p>
+      <p className="text-zinc-400 text-sm mb-8">Browse the OpenClaw Equipment directory by category.</p>
 
       <div className="space-y-12">
         {categories.map(cat => (

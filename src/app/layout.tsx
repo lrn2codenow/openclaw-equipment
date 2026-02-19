@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Getware — The Package Manager for AI Agents",
+  title: "OpenClaw Equipment — The Package Manager for AI Agents",
   description: "Find, download, and install tools, software, models, and resources for AI agents. Distributed peer-to-peer via WebTorrent.",
 };
 
@@ -27,7 +27,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <div className="flex items-center gap-8">
                 <a href="/" className="flex items-center gap-2 font-bold text-lg">
                   <span className="text-emerald-400">📦</span>
-                  <span>Getware</span>
+                  <span>OpenClaw Equipment</span>
                 </a>
                 <div className="hidden md:flex items-center gap-6">
                   <NavLink href="/browse">Browse</NavLink>
@@ -64,7 +64,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <h3 className="font-semibold text-sm mb-3">Resources</h3>
                 <div className="flex flex-col gap-2 text-sm text-zinc-400">
                   <a href="/docs" className="hover:text-zinc-200">API Documentation</a>
-                  <a href="/about" className="hover:text-zinc-200">About Getware</a>
+                  <a href="/about" className="hover:text-zinc-200">About OpenClaw Equipment</a>
                 </div>
               </div>
               <div>
@@ -77,9 +77,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </div>
               </div>
               <div>
-                <h3 className="font-semibold text-sm mb-3">Getware</h3>
+                <h3 className="font-semibold text-sm mb-3">OpenClaw Equipment</h3>
                 <p className="text-sm text-zinc-500">The package manager for AI agents. Find, download, install — peer-to-peer.</p>
-                <p className="text-sm text-zinc-600 mt-4">© 2025 Getware</p>
+                <p className="text-sm text-zinc-600 mt-4">© 2025 OpenClaw Equipment</p>
               </div>
             </div>
           </div>
@@ -93,9 +93,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               const mc = navigator.modelContext;
               mc.registerTool({
                 name: "search_packages",
-                description: "Search the Getware directory for packages, tools, software, or resources",
+                description: "Search the OpenClaw Equipment directory for packages, tools, software, or resources",
                 inputSchema: { type: "object", properties: { query: { type: "string" }, category: { type: "string" }, platform: { type: "string" }, sort: { type: "string" }, limit: { type: "number" } }, required: ["query"] },
-                handler: async (params) => {
+                execute: async (params) => {
                   const sp = new URLSearchParams();
                   if (params.query) sp.set('q', params.query);
                   if (params.category) sp.set('category', params.category);
@@ -110,13 +110,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 name: "get_categories",
                 description: "List all package categories with counts",
                 inputSchema: { type: "object", properties: {} },
-                handler: async () => { const res = await fetch('/api/categories'); return res.json(); }
+                execute: async () => { const res = await fetch('/api/categories'); return res.json(); }
               });
               mc.registerTool({
                 name: "get_trending",
                 description: "Get trending packages",
                 inputSchema: { type: "object", properties: { timeframe: { type: "string" }, category: { type: "string" } } },
-                handler: async (params) => {
+                execute: async (params) => {
                   const sp = new URLSearchParams();
                   if (params.timeframe) sp.set('timeframe', params.timeframe);
                   if (params.category) sp.set('category', params.category);

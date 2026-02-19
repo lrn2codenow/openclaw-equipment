@@ -1,4 +1,4 @@
-export const metadata = { title: 'API Documentation — Getware', description: 'API reference for Getware REST and WebMCP endpoints' };
+export const metadata = { title: 'API Documentation — OpenClaw Equipment', description: 'API reference for OpenClaw Equipment REST and WebMCP endpoints' };
 
 const endpoints = [
   { method: 'GET', path: '/api/search', desc: 'Search packages', params: 'q, category, platform, compatibility, sort, limit, offset' },
@@ -28,7 +28,7 @@ export default function DocsPage() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-3xl font-bold mb-2">API Documentation</h1>
-      <p className="text-zinc-400 text-sm mb-10">REST API and WebMCP tool reference for Getware.</p>
+      <p className="text-zinc-400 text-sm mb-10">REST API and WebMCP tool reference for OpenClaw Equipment.</p>
 
       {/* REST API */}
       <section className="mb-12">
@@ -53,7 +53,7 @@ export default function DocsPage() {
       <section className="mb-12">
         <h2 className="text-xl font-semibold mb-4">WebMCP Tools</h2>
         <p className="text-sm text-zinc-400 mb-4">
-          These tools are automatically registered via <code className="text-emerald-400 bg-zinc-900 px-1.5 py-0.5 rounded text-xs">navigator.modelContext</code> when an AI agent visits Getware in Chrome 146+.
+          These tools are automatically registered via <code className="text-emerald-400 bg-zinc-900 px-1.5 py-0.5 rounded text-xs">navigator.modelContext</code> when an AI agent visits OpenClaw Equipment in Chrome 146+.
         </p>
         <div className="space-y-3">
           {webmcpTools.map((tool, i) => (
