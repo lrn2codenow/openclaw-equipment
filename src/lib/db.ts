@@ -2,8 +2,10 @@ import Database from 'better-sqlite3';
 import path from 'path';
 
 const DB_PATH = path.join(process.cwd(), 'clawtools.db');
+const ANALYTICS_DB_PATH = path.join(process.cwd(), 'data', 'analytics.db');
 
 let _db: Database.Database | null = null;
+let _analyticsDb: Database.Database | null = null;
 
 export function getDb(): Database.Database {
   if (!_db) {
@@ -13,6 +15,15 @@ export function getDb(): Database.Database {
     initSchema(_db);
   }
   return _db;
+}
+
+export function getAnalyticsDb(): Database.Database {
+  if (!_analyticsDb) {
+    _analyticsDb = new Database(ANALYTICS_DB_PATH);
+    _analyticsDb.pragma('journal_mode = WAL');
+    initAnalyticsSchema(_analyticsDb);
+  }
+  return _analyticsDb;
 }
 
 function initSchema(db: Database.Database) {
@@ -28,6 +39,7 @@ function initSchema(db: Database.Database) {
       version TEXT NOT NULL,
       author TEXT NOT NULL,
       license TEXT DEFAULT 'MIT',
+      install TEXT,
       magnet_uri TEXT NOT NULL,
       info_hash TEXT,
       checksum TEXT,
@@ -40,6 +52,7 @@ function initSchema(db: Database.Database) {
       homepage TEXT,
       icon_url TEXT,
       tags TEXT DEFAULT '[]',
+      llm_summary TEXT,
       downloads INTEGER DEFAULT 0,
       rating REAL DEFAULT 0,
       review_count INTEGER DEFAULT 0,
@@ -85,6 +98,143 @@ function initSchema(db: Database.Database) {
   `);
 }
 
+function initAnalyticsSchema(db: Database.Database) {
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS api_hits (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      timestamp TEXT DEFAULT (datetime('now')),
+      endpoint TEXT NOT NULL,
+      query TEXT,
+      slug TEXT,
+      user_agent TEXT,
+      referrer TEXT,
+      ip TEXT
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_api_hits_timestamp ON api_hits(timestamp);
+    CREATE INDEX IF NOT EXISTS idx_api_hits_endpoint ON api_hits(endpoint);
+  `);
+}
+
+export function trackApiHit(data: {
+  endpoint: string;
+  query?: string;
+  slug?: string;
+  userAgent?: string;
+  referrer?: string;
+  ip?: string;
+}) {
+  try {
+    const db = getAnalyticsDb();
+    db.prepare(
+      'INSERT INTO api_hits (endpoint, query, slug, user_agent, referrer, ip) VALUES (?, ?, ?, ?, ?, ?)'
+    ).run(data.endpoint, data.query || null, data.slug || null, data.userAgent || null, data.referrer || null, data.ip || null);
+  } catch {
+    // Analytics should never break the main app
+  }
+}
+
+export function getAnalyticsSummary() {
+  const db = getAnalyticsDb();
+  const total = db.prepare('SELECT COUNT(*) as count FROM api_hits').get() as { count: number };
+  const last24h = db.prepare("SELECT COUNT(*) as count FROM api_hits WHERE timestamp > datetime('now', '-1 day')").get() as { count: number };
+  const last7d = db.prepare("SELECT COUNT(*) as count FROM api_hits WHERE timestamp > datetime('now', '-7 days')").get() as { count: number };
+  const byEndpoint = db.prepare('SELECT endpoint, COUNT(*) as count FROM api_hits GROUP BY endpoint ORDER BY count DESC').all();
+  const topQueries = db.prepare("SELECT query, COUNT(*) as count FROM api_hits WHERE query IS NOT NULL AND query != '' GROUP BY query ORDER BY count DESC LIMIT 20").all();
+  const topSlugs = db.prepare("SELECT slug, COUNT(*) as count FROM api_hits WHERE slug IS NOT NULL GROUP BY slug ORDER BY count DESC LIMIT 20").all();
+  const agentVsHuman = db.prepare(`
+    SELECT 
+      CASE 
+        WHEN user_agent LIKE '%claude%' OR user_agent LIKE '%openai%' OR user_agent LIKE '%gpt%' OR user_agent LIKE '%anthropic%' OR user_agent LIKE '%openclaw%' OR user_agent LIKE '%bot%' THEN 'agent'
+        ELSE 'human'
+      END as type,
+      COUNT(*) as count
+    FROM api_hits GROUP BY type
+  `).all();
+  const recentHits = db.prepare('SELECT * FROM api_hits ORDER BY timestamp DESC LIMIT 50').all();
+
+  return {
+    total: total.count,
+    last_24h: last24h.count,
+    last_7d: last7d.count,
+    by_endpoint: byEndpoint,
+    top_queries: topQueries,
+    top_slugs: topSlugs,
+    agent_vs_human: agentVsHuman,
+    recent: recentHits,
+  };
+}
+
+function formatPackageForApi(row: Record<string, unknown>) {
+  return {
+    name: row.name,
+    slug: row.slug,
+    description: row.description,
+    long_description: row.long_description || null,
+    category: row.category,
+    subcategory: row.subcategory || null,
+    version: row.version,
+    author: row.author,
+    license: row.license,
+    install: row.install || null,
+    source: row.source_url || null,
+    homepage: row.homepage || null,
+    compatibility: tryParseJson(row.compatibility as string, ['any']),
+    platform: tryParseJson(row.platform as string, ['any']),
+    tags: tryParseJson(row.tags as string, []),
+    downloads: row.downloads,
+    rating: row.rating,
+    review_count: row.review_count,
+    seeders: row.seeders,
+    llm_summary: row.llm_summary || null,
+    featured: row.featured === 1,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+  };
+}
+
+function tryParseJson(str: string | undefined | null, fallback: unknown) {
+  if (!str) return fallback;
+  try { return JSON.parse(str); } catch { return fallback; }
+}
+
+export function searchPackagesRaw(opts: {
+  q?: string;
+  category?: string;
+  platform?: string;
+  compatibility?: string;
+  sort?: string;
+  limit?: number;
+  offset?: number;
+}) {
+  const db = getDb();
+  const conditions: string[] = ['status = ?'];
+  const params: unknown[] = ['published'];
+
+  if (opts.q) {
+    conditions.push('(name LIKE ? OR description LIKE ? OR tags LIKE ?)');
+    const q = `%${opts.q}%`;
+    params.push(q, q, q);
+  }
+  if (opts.category && opts.category !== 'all') {
+    conditions.push('category = ?');
+    params.push(opts.category);
+  }
+
+  const limit = Math.min(opts.limit || 20, 100);
+  const offset = opts.offset || 0;
+
+  const sql = `SELECT * FROM packages WHERE ${conditions.join(' AND ')} ORDER BY downloads DESC LIMIT ? OFFSET ?`;
+  const finalParams = [...params, limit, offset];
+
+  const countSql = `SELECT COUNT(*) as total FROM packages WHERE ${conditions.join(' AND ')}`;
+
+  const rows = db.prepare(sql).all(...finalParams);
+  const { total } = db.prepare(countSql).get(...params) as { total: number };
+
+  return { packages: rows, total, limit, offset };
+}
+
 export function searchPackages(opts: {
   q?: string;
   category?: string;
@@ -127,7 +277,7 @@ export function searchPackages(opts: {
   const limit = Math.min(opts.limit || 20, 100);
   const offset = opts.offset || 0;
 
-  let sql = `SELECT * FROM packages WHERE ${conditions.join(' AND ')} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
+  const sql = `SELECT * FROM packages WHERE ${conditions.join(' AND ')} ORDER BY ${orderBy} LIMIT ? OFFSET ?`;
   const finalParams = [...params];
   if (opts.sort === 'relevance' && opts.q) {
     finalParams.push(`%${opts.q}%`);
@@ -136,15 +286,24 @@ export function searchPackages(opts: {
 
   const countSql = `SELECT COUNT(*) as total FROM packages WHERE ${conditions.join(' AND ')}`;
 
-  const rows = db.prepare(sql).all(...finalParams);
+  const rows = db.prepare(sql).all(...finalParams) as Record<string, unknown>[];
   const { total } = db.prepare(countSql).get(...params) as { total: number };
 
-  return { packages: rows, total, limit, offset };
+  return {
+    packages: rows.map(formatPackageForApi),
+    total,
+    query: opts.q || null,
+    category: opts.category || null,
+    limit,
+    offset,
+  };
 }
 
 export function getPackageBySlug(slug: string) {
   const db = getDb();
-  return db.prepare('SELECT * FROM packages WHERE slug = ?').get(slug);
+  const row = db.prepare('SELECT * FROM packages WHERE slug = ?').get(slug) as Record<string, unknown> | undefined;
+  if (!row) return null;
+  return formatPackageForApi(row);
 }
 
 export function getPackageVersions(slug: string) {
@@ -161,24 +320,37 @@ export function getPackageReviews(slug: string) {
   return db.prepare('SELECT * FROM reviews WHERE package_id = ? ORDER BY created_at DESC').all(pkg.id);
 }
 
+export function getFeaturedPackages() {
+  const db = getDb();
+  const rows = db.prepare('SELECT * FROM packages WHERE featured = 1 AND status = ? ORDER BY downloads DESC LIMIT 20').all('published') as Record<string, unknown>[];
+  return rows.map(formatPackageForApi);
+}
+
+export function getAllPackages() {
+  const db = getDb();
+  const rows = db.prepare('SELECT * FROM packages WHERE status = ? ORDER BY category, downloads DESC').all('published') as Record<string, unknown>[];
+  return rows.map(formatPackageForApi);
+}
+
 export function createPackage(data: Record<string, unknown>) {
   const db = getDb();
   const id = data.id as string || crypto.randomUUID();
   const slug = (data.slug as string) || (data.name as string).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   
   const stmt = db.prepare(`
-    INSERT INTO packages (id, name, slug, description, long_description, category, subcategory, version, author, license, magnet_uri, info_hash, checksum, size_bytes, size_display, platform, compatibility, dependencies, source_url, homepage, icon_url, tags, downloads, rating, review_count, seeders, status, featured)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    INSERT INTO packages (id, name, slug, description, long_description, category, subcategory, version, author, license, install, magnet_uri, info_hash, checksum, size_bytes, size_display, platform, compatibility, dependencies, source_url, homepage, icon_url, tags, llm_summary, downloads, rating, review_count, seeders, status, featured)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   stmt.run(
     id, data.name, slug, data.description, data.long_description || null,
     data.category, data.subcategory || null, data.version, data.author,
-    data.license || 'MIT', data.magnet_uri, data.info_hash || null,
+    data.license || 'MIT', data.install || null, data.magnet_uri, data.info_hash || null,
     data.checksum || null, data.size_bytes || null, data.size_display || null,
     JSON.stringify(data.platform || ['any']), JSON.stringify(data.compatibility || ['any']),
     JSON.stringify(data.dependencies || []), data.source_url || null,
     data.homepage || null, data.icon_url || null, JSON.stringify(data.tags || []),
+    data.llm_summary || null,
     data.downloads || 0, data.rating || 0, data.review_count || 0,
     data.seeders || 0, data.status || 'published', data.featured || 0
   );
@@ -193,7 +365,6 @@ export function createReview(data: { package_id: string; reviewer: string; revie
   db.prepare(`INSERT INTO reviews (id, package_id, reviewer, reviewer_type, rating, review, works_on, issues) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`)
     .run(id, data.package_id, data.reviewer, data.reviewer_type || 'agent', data.rating, data.review || null, JSON.stringify(data.works_on || []), JSON.stringify(data.issues || []));
 
-  // Update package rating
   const stats = db.prepare('SELECT AVG(rating) as avg_rating, COUNT(*) as count FROM reviews WHERE package_id = ?').get(data.package_id) as { avg_rating: number; count: number };
   db.prepare('UPDATE packages SET rating = ?, review_count = ? WHERE id = ?').run(Math.round(stats.avg_rating * 10) / 10, stats.count, data.package_id);
 
@@ -203,7 +374,6 @@ export function createReview(data: { package_id: string; reviewer: string; revie
 export function getCategories() {
   const db = getDb();
   const cats = db.prepare('SELECT * FROM categories ORDER BY sort_order').all() as Array<Record<string, unknown>>;
-  // Add package counts
   return cats.map(cat => {
     const { count } = db.prepare('SELECT COUNT(*) as count FROM packages WHERE category = ? AND status = ?').get(cat.slug, 'published') as { count: number };
     return { ...cat, package_count: count };
@@ -229,5 +399,6 @@ export function getTrending(opts: { timeframe?: string; category?: string }) {
     params.push(opts.category);
   }
 
-  return db.prepare(`SELECT * FROM packages WHERE ${conditions.join(' AND ')} ORDER BY downloads DESC LIMIT 20`).all(...params);
+  const rows = db.prepare(`SELECT * FROM packages WHERE ${conditions.join(' AND ')} ORDER BY downloads DESC LIMIT 20`).all(...params) as Record<string, unknown>[];
+  return rows.map(formatPackageForApi);
 }

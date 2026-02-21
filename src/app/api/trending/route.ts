@@ -3,9 +3,9 @@ import { getTrending } from '@/lib/db';
 
 export async function GET(request: NextRequest) {
   const sp = request.nextUrl.searchParams;
-  const packages = getTrending({
+  const result = getTrending({
     timeframe: sp.get('timeframe') || undefined,
     category: sp.get('category') || undefined,
   });
-  return NextResponse.json({ packages });
+  return NextResponse.json({ packages: result });
 }

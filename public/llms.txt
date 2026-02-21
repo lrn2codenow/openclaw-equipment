@@ -1,0 +1,125 @@
+# OpenClaw Equipment — llms.txt
+# https://equipment.openclaw.com
+# Last updated: 2026-02-21
+
+## What is OpenClaw Equipment?
+OpenClaw Equipment is a package registry for AI agent tools — MCP servers, OpenClaw skills, and developer utilities. Agents can search, discover, and install packages programmatically via a structured JSON API. Think npm, but for agent tooling.
+
+## API Base URL
+https://equipment.openclaw.com/api
+
+## Endpoints
+
+### Search Packages
+GET /api/packages/search?q={query}&category={category}&limit={limit}&offset={offset}
+
+Parameters:
+- q (string, optional): Search query — matches name, description, tags
+- category (string, optional): Filter by category slug (mcp-tools, openclaw-skills, dev-tools, software, models, resources)
+- sort (string, optional): relevance | downloads | rating | newest
+- limit (integer, optional): Results per page, max 100, default 20
+- offset (integer, optional): Pagination offset
+
+Example:
+  GET /api/packages/search?q=github&category=mcp-tools
+
+Response:
+```json
+{
+  "packages": [
+    {
+      "name": "GitHub MCP Server",
+      "slug": "github-mcp-server",
+      "description": "Access GitHub repos, issues, PRs, and actions through MCP",
+      "category": "mcp-tools",
+      "version": "2025.1.14",
+      "install": "npx -y @modelcontextprotocol/server-github",
+      "source": "https://github.com/modelcontextprotocol/servers",
+      "compatibility": ["claude", "openai", "openclaw"],
+      "downloads": 89000,
+      "rating": 4.6,
+      "tags": ["github", "git", "vcs", "code"],
+      "llm_summary": "MCP server providing tools for GitHub repository management — create/read issues, PRs, files, branches. Requires GITHUB_PERSONAL_ACCESS_TOKEN env var."
+    }
+  ],
+  "total": 1,
+  "query": "github",
+  "limit": 20,
+  "offset": 0
+}
+```
+
+### Get Package Details
+GET /api/packages/{slug}
+
+Example:
+  GET /api/packages/filesystem-mcp-server
+
+Returns full package detail including versions, reviews, and install instructions.
+
+### Featured Packages
+GET /api/packages/featured
+
+Returns curated list of top-rated and most-downloaded packages across all categories.
+
+### List Categories
+GET /api/packages/categories
+
+Returns all categories with package counts:
+```json
+{
+  "categories": [
+    { "slug": "mcp-tools", "name": "MCP Tools", "description": "Model Context Protocol servers", "package_count": 10 },
+    { "slug": "openclaw-skills", "name": "OpenClaw Skills", "description": "Skills for OpenClaw agents", "package_count": 5 },
+    { "slug": "dev-tools", "name": "Developer Tools", "description": "CLI tools and utilities", "package_count": 5 }
+  ]
+}
+```
+
+### Full Registry Dump
+GET /api/registry.json
+
+Returns all packages in a single JSON payload. Useful for agents that want to cache the full registry locally.
+
+## Install Instructions by Package Type
+
+### MCP Servers (Node.js)
+```bash
+npx -y @modelcontextprotocol/server-filesystem /path/to/dir
+```
+Or add to your MCP client config (Claude Desktop, VS Code, OpenClaw):
+```json
+{
+  "mcpServers": {
+    "filesystem": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/path/to/dir"]
+    }
+  }
+}
+```
+
+### OpenClaw Skills
+```bash
+openclaw skill install weather
+openclaw skill install github
+```
+
+### Developer Tools (system packages)
+```bash
+# macOS
+brew install yt-dlp ffmpeg jq ripgrep imagemagick
+
+# Ubuntu/Debian
+apt install yt-dlp ffmpeg jq ripgrep imagemagick
+
+# Using pip
+pip install yt-dlp
+```
+
+## Notes for Agents
+- All responses are JSON with consistent structure
+- The `llm_summary` field on each package is optimized for LLM context windows
+- Use `category` filter to narrow results by type
+- Package `slug` values are URL-safe identifiers
+- Rate limiting: 100 requests/minute per IP

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPackageReviews, getPackageBySlug, createReview } from '@/lib/db';
+import { getPackageReviews, getDb, createReview } from '@/lib/db';
 
 export async function GET(_request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -9,7 +9,8 @@ export async function GET(_request: NextRequest, { params }: { params: Promise<{
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const pkg = getPackageBySlug(slug) as { id: string } | undefined;
+  const db = getDb();
+  const pkg = db.prepare('SELECT id FROM packages WHERE slug = ?').get(slug) as { id: string } | undefined;
   if (!pkg) return NextResponse.json({ error: 'Package not found' }, { status: 404 });
 
   const body = await request.json();

@@ -1,4 +1,4 @@
-import { getCategories, searchPackages } from '@/lib/db';
+import { getCategories, searchPackagesRaw } from '@/lib/db';
 import { type Category, type Package, formatNumber } from '@/lib/utils';
 import PackageCard from '@/components/PackageCard';
 
@@ -9,7 +9,7 @@ export default function CategoriesPage() {
   
   const categoryPackages: Record<string, Package[]> = {};
   for (const cat of categories) {
-    const { packages } = searchPackages({ category: cat.slug, limit: 4, sort: 'downloads' });
+    const { packages } = searchPackagesRaw({ category: cat.slug, limit: 4, sort: 'downloads' });
     categoryPackages[cat.slug] = packages as Package[];
   }
 

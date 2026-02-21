@@ -1,10 +1,11 @@
-import { getPackageBySlug, getPackageVersions, getPackageReviews, searchPackages } from '@/lib/db';
+import { getDb, getPackageVersions, getPackageReviews, searchPackagesRaw } from '@/lib/db';
 import { formatNumber, type Package, type Review } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 
 export default async function PackageDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const pkg = getPackageBySlug(slug) as Package | undefined;
+  const db = getDb();
+  const pkg = db.prepare('SELECT * FROM packages WHERE slug = ?').get(slug) as Package | undefined;
   if (!pkg) notFound();
 
   const versions = getPackageVersions(slug) as Array<{ id: string; version: string; changelog: string; created_at: string }>;
@@ -12,7 +13,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
   const tags = JSON.parse(pkg.tags || '[]') as string[];
   const platforms = JSON.parse(pkg.platform || '["any"]') as string[];
   const compatibility = JSON.parse(pkg.compatibility || '["any"]') as string[];
-  const { packages: related } = searchPackages({ category: pkg.category, limit: 4 });
+  const { packages: related } = searchPackagesRaw({ category: pkg.category, limit: 4 });
   const relatedPkgs = (related as Package[]).filter(p => p.id !== pkg.id).slice(0, 3);
 
   return (
