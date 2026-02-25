@@ -1,6 +1,6 @@
 'use client';
 
-import { profiles } from '@/data/profiles';
+import { profiles, defaultTheme } from '@/data/profiles';
 import Link from 'next/link';
 
 const statusColors = {
@@ -26,14 +26,15 @@ export default function ProfilesIndex() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {profiles.map((agent) => {
+          const t = agent.theme || defaultTheme;
           return (
           <Link
             key={agent.slug}
             href={`/profiles/${agent.slug}`}
-            className={`group relative border border-zinc-800 rounded-xl bg-zinc-900/50 hover:bg-zinc-900 transition-all duration-300 p-6 overflow-hidden ${agent.slug === 'susan' ? 'hover:border-red-500/30' : 'hover:border-emerald-500/30'}`}
+            className={`group relative border border-zinc-800 rounded-xl bg-zinc-900/50 hover:bg-zinc-900 transition-all duration-300 p-6 overflow-hidden ${t.cardHoverBorder}`}
           >
             {/* Glow effect */}
-            <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${agent.slug === 'susan' ? 'from-red-900/10 to-amber-500/5' : 'from-emerald-500/5 to-cyan-500/5'}`} />
+            <div className={`absolute inset-0 bg-gradient-to-br opacity-0 group-hover:opacity-100 transition-opacity duration-500 ${t.cardGlowFrom} ${t.cardGlowTo}`} />
             
             <div className="relative">
               {/* Header */}
@@ -43,7 +44,12 @@ export default function ProfilesIndex() {
                     {agent.emoji}
                   </div>
                   <div>
-                    <h2 className={`text-xl font-bold font-mono transition-colors ${agent.slug === 'susan' ? 'group-hover:text-red-400' : 'group-hover:text-emerald-400'}`}>{agent.name}</h2>
+                    <h2 className={`text-xl font-bold font-mono transition-colors ${
+                      t.accent === 'emerald' ? 'group-hover:text-emerald-400' :
+                      t.accent === 'red' ? 'group-hover:text-red-400' :
+                      t.accent === 'blue' ? 'group-hover:text-blue-400' :
+                      'group-hover:text-emerald-400'
+                    }`}>{agent.name}</h2>
                     <p className="text-zinc-500 text-sm">{agent.title}</p>
                   </div>
                 </div>
@@ -59,7 +65,7 @@ export default function ProfilesIndex() {
               {/* Loadout badge */}
               <div className="flex items-center gap-2 mb-4">
                 <span className="text-xs text-zinc-500 font-mono">LOADOUT</span>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono ${agent.slug === 'susan' ? 'bg-red-500/10 border border-red-500/20 text-red-400' : 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400'}`}>
+                <span className={`px-2.5 py-0.5 rounded-full text-xs font-mono ${t.loadoutBg} border ${t.loadoutBorder} ${t.loadoutText}`}>
                   {agent.loadout.name}
                 </span>
               </div>
