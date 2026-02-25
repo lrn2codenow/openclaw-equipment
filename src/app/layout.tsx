@@ -18,6 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 <span className="font-mono">OpenClaw Equipment</span>
               </a>
               <div className="flex items-center gap-4">
+                <a href="/profiles"
+                  className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
+                  🎮 Agents
+                </a>
                 <a href="https://github.com/lrn2codenow/openclaw-equipment" target="_blank" rel="noopener noreferrer"
                   className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
                   GitHub

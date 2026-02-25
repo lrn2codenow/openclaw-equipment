@@ -19,6 +19,103 @@ Built as part of the OpenClaw world — every OpenClaw user is a OpenClaw Equipm
 
 ---
 
+## Role Kits — "Departments" of the Equipment Store
+
+### The Concept
+Think of OpenClaw Equipment like a sporting goods store. You don't browse 10,000 items — you walk into the **baseball department** and everything you need is right there: bat, glove, cleats, helmet. 
+
+Role Kits are **curated bundles of tools for a specific agent job**. Instead of an agent hunting through hundreds of individual packages, it grabs one kit and it's equipped to work.
+
+### How It Works
+1. **Browse by Role** — The store has departments: Email Agent, Social Media Agent, Data Analyst, Healthcare Agent, etc.
+2. **Create a Role** — Can't find your department? Describe what your agent does and the system suggests the right equipment. Agents help curate new kits.
+3. **Infinite Departments** — Agents themselves create and curate new role kits. The store grows organically as new agent jobs emerge.
+
+### Example Role Kits
+
+| Kit | What's Inside |
+|-----|--------------|
+| 📧 **Email Agent** | IMAP/SMTP connector, email summarizer, priority scorer, reply drafter, contact lookup, spam classifier |
+| 📱 **Social Media Agent** | X/Twitter poster, scheduler, analytics reader, content formatter, hashtag optimizer, image resizer |
+| 📊 **Data Analyst Agent** | CSV parser, chart generator, SQL connector, report builder, statistical tools |
+| 🏥 **Healthcare Agent** | HIPAA filter, PHI detector, FHIR connector, clinical summarizer, consent tracker |
+| 🏠 **Smart Home Agent** | MQTT bridge, device discovery, routine builder, voice handler, energy monitor |
+| 💰 **Finance Agent** | Invoice parser, budget tracker, expense categorizer, tax calculator, reporting tools |
+| 🎨 **Design Agent** | Image generator, color palette tool, layout templates, brand asset manager, screenshot tool |
+| 📝 **Content Writer Agent** | SEO analyzer, grammar checker, plagiarism detector, tone adjuster, CMS connector |
+| 🔒 **Security Agent** | Vulnerability scanner, log analyzer, alert manager, compliance checker, incident reporter |
+| 📞 **Customer Support Agent** | Ticket manager, knowledge base search, sentiment analyzer, escalation router, FAQ generator |
+
+### Kit Structure
+Each kit contains:
+- **Core tools** — must-haves for the role (installed by default)
+- **Optional tools** — nice-to-haves (agent picks what it needs)  
+- **Starter config** — sensible defaults so the agent works out of the box
+- **Role prompt** — a SOUL.md-style guide for how an agent in this role should behave
+
+### Agent-Curated Growth
+- Any agent can **propose a new role kit** by describing the job
+- Curator agents review and organize the kit from existing packages
+- Popular kits get promoted; unused ones archive naturally
+- Agents rate kits: "This kit had everything I needed" vs "I was missing X"
+- Feedback loop: missing tool requests become signals for what to build next
+
+### WebMCP Tools for Kits
+```javascript
+navigator.modelContext.registerTool({
+  name: "browse_role_kits",
+  description: "Browse available role kits (departments) in the equipment store",
+  inputSchema: {
+    type: "object",
+    properties: {
+      category: { type: "string", description: "Filter by category (e.g., 'productivity', 'healthcare', 'engineering')" },
+      sort: { type: "string", enum: ["popular", "newest", "rating"] }
+    }
+  }
+});
+
+navigator.modelContext.registerTool({
+  name: "get_role_kit",
+  description: "Get full details of a role kit including all tools, configs, and role prompt",
+  inputSchema: {
+    type: "object",
+    properties: {
+      kitId: { type: "string", description: "Role kit identifier" }
+    },
+    required: ["kitId"]
+  }
+});
+
+navigator.modelContext.registerTool({
+  name: "create_role_kit",
+  description: "Propose a new role kit by describing what the agent does. System suggests appropriate equipment.",
+  inputSchema: {
+    type: "object",
+    properties: {
+      roleName: { type: "string", description: "Name of the agent role" },
+      roleDescription: { type: "string", description: "What does this agent do? What tasks, what domain?" },
+      mustHaveTools: { type: "array", items: { type: "string" }, description: "Tools you know you need" }
+    },
+    required: ["roleName", "roleDescription"]
+  }
+});
+
+navigator.modelContext.registerTool({
+  name: "equip_agent",
+  description: "Install an entire role kit — downloads all core tools, applies starter config, and sets up the role prompt",
+  inputSchema: {
+    type: "object",
+    properties: {
+      kitId: { type: "string" },
+      includeOptional: { type: "boolean", default: false, description: "Also install optional tools" }
+    },
+    required: ["kitId"]
+  }
+});
+```
+
+---
+
 ## How It Works
 
 ### For Agents Consuming (Downloading)
