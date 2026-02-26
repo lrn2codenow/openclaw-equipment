@@ -168,7 +168,7 @@ export default function AgentDetailPage() {
             ) : (
               <div className="space-y-2">
                 {availableTools.map(t => (
-                  <button key={t.name} onClick={() => addTool(t.name, t.category)}
+                  <button key={t.name} onClick={() => addTool(t.name, 'core')}
                     className="w-full text-left border border-zinc-800 rounded-lg p-3 hover:border-emerald-500/30 transition-all">
                     <div className="font-mono text-sm text-emerald-400">{t.name}</div>
                     <div className="text-zinc-500 text-xs mt-1">{t.description}</div>

@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   const loadout = getLoadoutBySlug(loadout_slug);
   if (loadout) {
     for (const tool of loadout.coreTools) {
-      addEquipment(result.id, tool.name, tool.category);
+      addEquipment(result.id, tool.name, 'core');
     }
   }
 
