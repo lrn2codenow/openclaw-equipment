@@ -40,11 +40,21 @@ export function NavBar() {
               📦 Loadouts
             </a>
             {user && (
-              <a href="/locker-room"
-                className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
-                🏟️ Locker Room
-              </a>
+              <>
+                <a href="/dashboard"
+                  className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
+                  📊 Dashboard
+                </a>
+                <a href="/locker-room"
+                  className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
+                  🏟️ Locker Room
+                </a>
+              </>
             )}
+            <a href="/api-docs"
+              className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
+              📡 API
+            </a>
             <a href="https://github.com/lrn2codenow/openclaw-equipment" target="_blank" rel="noopener noreferrer"
               className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
               GitHub
