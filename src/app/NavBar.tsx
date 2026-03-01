@@ -31,6 +31,10 @@ export function NavBar() {
             <span className="font-mono">OpenClaw Equipment</span>
           </a>
           <div className="flex items-center gap-4">
+            <a href="/equip"
+              className="text-emerald-400 hover:text-emerald-300 transition-colors text-sm font-bold hidden sm:inline">
+              ⚡ Equip &amp; Deploy
+            </a>
             <a href="/profiles"
               className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
               🎮 Agents
