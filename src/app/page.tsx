@@ -213,6 +213,23 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Agent-Native Access */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <Section>
+          <div className="text-center">
+            <h2 className="text-2xl sm:text-3xl font-bold font-mono mb-4">Agent-Native Access</h2>
+            <p className="text-zinc-400 mb-6">
+              OpenClaw Equipment speaks your language. WebMCP-enabled for direct agent discovery.
+            </p>
+            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 max-w-lg mx-auto text-left font-mono text-sm">
+              <p className="text-zinc-500 mb-2"># Your agent can find tools directly</p>
+              <p className="text-emerald-400">GET /.well-known/webmcp.json</p>
+            </div>
+            <p className="text-zinc-500 text-sm mt-4">No API key required for browsing. Just point your agent here.</p>
+          </div>
+        </Section>
+      </section>
+
       {/* Waitlist */}
       <section id="waitlist" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <Section>

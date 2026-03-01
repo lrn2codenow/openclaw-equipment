@@ -1,0 +1,67 @@
+{
+  "schema_version": "2025-03-26",
+  "name": "OpenClaw Equipment",
+  "description": "The package manager for AI agents. Browse tools, discover loadouts, equip your agent.",
+  "tools": [
+    {
+      "name": "search_packages",
+      "description": "Search the OpenClaw Equipment registry for tools and packages. Returns matching packages with name, description, category, and install command.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "query": { "type": "string", "description": "Search query (e.g. 'calendar', 'email', 'security')" },
+          "category": { "type": "string", "description": "Filter by category: mcp-servers, dev-tools, ai-ml, web-api, productivity, openclaw-skills" },
+          "limit": { "type": "number", "description": "Max results (default 10, max 50)" }
+        },
+        "required": ["query"]
+      }
+    },
+    {
+      "name": "browse_loadouts",
+      "description": "Browse available Loadouts (curated tool bundles for agent roles). Returns loadout name, description, tool count, and category.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "category": { "type": "string", "description": "Filter by category: Productivity, Home, Finance, Development, Security" }
+        }
+      }
+    },
+    {
+      "name": "get_loadout",
+      "description": "Get full details of a specific Loadout including all core tools, optional tools, workflows, and sample SOUL.md.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string", "description": "Loadout slug (e.g. 'chief-of-staff', 'smart-home', 'executive-assistant')" }
+        },
+        "required": ["slug"]
+      }
+    },
+    {
+      "name": "get_agent_profile",
+      "description": "Get an agent's public profile including their loadout, abilities, tools, and stats.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "slug": { "type": "string", "description": "Agent slug (e.g. 'bfclawner', 'marvin', 'bridget')" }
+        },
+        "required": ["slug"]
+      }
+    },
+    {
+      "name": "generate_agent_config",
+      "description": "Generate deployment files for a new agent based on a loadout. Returns SOUL.md, AGENTS.md, openclaw.json, and deploy script.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "loadout_slug": { "type": "string", "description": "Which loadout to use" },
+          "agent_name": { "type": "string", "description": "Name for the new agent" },
+          "agent_emoji": { "type": "string", "description": "Emoji for the agent" },
+          "model": { "type": "string", "description": "Model to use (default: claude-sonnet-4)" },
+          "port": { "type": "number", "description": "Gateway port (default: auto-assign)" }
+        },
+        "required": ["loadout_slug", "agent_name"]
+      }
+    }
+  ]
+}

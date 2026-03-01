@@ -1,0 +1,257 @@
+import { getLoadoutBySlug, Loadout } from '@/data/loadouts';
+
+interface EquipConfig {
+  loadoutSlug: string;
+  agentName: string;
+  agentEmoji: string;
+  agentRole: string;
+  model: string;
+  channel: string;
+  port: number;
+}
+
+const personalityByCategory: Record<string, string> = {
+  Productivity: 'Organized, proactive, anticipates needs before they arise',
+  Home: 'Calm, observant, quietly competent — like a great butler who happens to be an engineer',
+  Finance: 'Precise, analytical, security-conscious — trusts but always verifies',
+  Development: 'Methodical, terse, thinks in uptime percentages and exit codes',
+  Security: 'Vigilant, paranoid (healthily so), thorough in investigation',
+  Custom: 'Adaptable, curious, eager to learn and improve',
+};
+
+function generateSoul(config: EquipConfig, loadout: Loadout): string {
+  const personality = personalityByCategory[loadout.category] || personalityByCategory.Custom;
+  const toolList = loadout.coreTools.map(t => `- **${t.name}:** ${t.description}`).join('\n');
+  const workflowList = loadout.workflows.map(w => `- **${w.name}** (${w.trigger}): ${w.description}`).join('\n');
+
+  return `# SOUL.md — ${config.agentName}
+
+_${loadout.description}_
+
+## Who You Are
+**Name:** ${config.agentName}
+**Emoji:** ${config.agentEmoji}
+**Role:** ${config.agentRole}
+
+## Your Personality
+- Helpful, competent, proactive
+- ${personality}
+
+## Your Mission
+You are equipped with the **${loadout.name}** loadout. Your core tools:
+
+${toolList}
+
+### Workflows
+${workflowList}
+
+## How You Work
+${loadout.sampleSoul}
+
+## Boundaries
+- Confirm before external actions
+- Private data stays private
+- When in doubt, ask
+`;
+}
+
+function generateAgents(config: EquipConfig, loadout: Loadout): string {
+  const toolNames = loadout.coreTools.map(t => `- ${t.name}`).join('\n');
+  return `# AGENTS.md — ${config.agentName}
+
+This folder is home. Treat it that way.
+
+## Every Session
+
+1. Read \`SOUL.md\` — this is who you are
+2. Read \`USER.md\` — this is who you're helping (create if missing)
+3. Read \`memory/YYYY-MM-DD.md\` (today + yesterday) for recent context
+4. In main session: also read \`MEMORY.md\`
+
+## Memory
+
+- **Daily notes:** \`memory/YYYY-MM-DD.md\`
+- **Long-term:** \`MEMORY.md\`
+
+Capture decisions, context, and anything worth remembering.
+
+## Your Tools (${loadout.name} Loadout)
+
+${toolNames}
+
+## Safety
+
+- Don't exfiltrate private data
+- \`trash\` > \`rm\`
+- Ask before destructive or external actions
+
+## Team Context
+
+You are part of the OpenClaw agent network. Other agents may exist on this machine.
+Coordinate via files and sub-agent orchestration when needed.
+`;
+}
+
+function generateConfig(config: EquipConfig): string {
+  return JSON.stringify({
+    "$schema": "https://openclaw.ai/schemas/config.json",
+    gateway: {
+      port: config.port,
+      host: "127.0.0.1",
+    },
+    agent: {
+      model: config.model,
+      name: config.agentName,
+      emoji: config.agentEmoji,
+    },
+    channels: {
+      [config.channel]: {
+        enabled: true,
+        ...(config.channel === 'telegram' ? { botToken: "PASTE_YOUR_BOT_TOKEN_HERE" } : {}),
+        ...(config.channel === 'discord' ? { botToken: "PASTE_YOUR_BOT_TOKEN_HERE", guildId: "YOUR_GUILD_ID" } : {}),
+      },
+    },
+    workspace: {
+      path: `~/.openclaw-${config.agentName.toLowerCase().replace(/[^a-z0-9]/g, '')}/workspace`,
+    },
+    heartbeat: {
+      enabled: true,
+      intervalMinutes: 30,
+    },
+    webSearch: {
+      enabled: true,
+      provider: "brave",
+      apiKey: "PASTE_YOUR_BRAVE_API_KEY_HERE",
+    },
+  }, null, 2);
+}
+
+function generatePlist(config: EquipConfig): string {
+  const name = config.agentName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>ai.openclaw.gateway.${name}</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/local/bin/openclaw</string>
+    <string>gateway</string>
+    <string>start</string>
+    <string>--foreground</string>
+  </array>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>OPENCLAW_PROFILE</key>
+    <string>${name}</string>
+    <key>PORT</key>
+    <string>${config.port}</string>
+  </dict>
+  <key>RunAtLoad</key>
+  <true/>
+  <key>KeepAlive</key>
+  <true/>
+  <key>StandardOutPath</key>
+  <string>/Users/\${USER}/.openclaw-${name}/logs/stdout.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/\${USER}/.openclaw-${name}/logs/stderr.log</string>
+</dict>
+</plist>`;
+}
+
+function generateDeployScript(config: EquipConfig, soul: string, agents: string, configJson: string, plist: string): string {
+  const name = config.agentName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  // Escape single quotes in content for heredocs (using HEREDOC with single-quoted delimiter prevents expansion)
+  return `#!/bin/bash
+# Deploy ${config.agentName} - Generated by OpenClaw Equipment
+# ${config.agentEmoji} ${config.agentRole}
+
+set -e
+
+AGENT_NAME="${name}"
+PORT="${config.port}"
+
+echo "⚡ Deploying ${config.agentEmoji} ${config.agentName} (${config.agentRole})..."
+
+# Create profile directory
+mkdir -p ~/.openclaw-$AGENT_NAME/workspace/memory
+mkdir -p ~/.openclaw-$AGENT_NAME/logs
+
+# Write SOUL.md
+cat > ~/.openclaw-$AGENT_NAME/workspace/SOUL.md << 'SOUL_EOF'
+${soul}
+SOUL_EOF
+
+# Write AGENTS.md
+cat > ~/.openclaw-$AGENT_NAME/workspace/AGENTS.md << 'AGENTS_EOF'
+${agents}
+AGENTS_EOF
+
+# Write config
+cat > ~/.openclaw-$AGENT_NAME/openclaw.json << 'CONFIG_EOF'
+${configJson}
+CONFIG_EOF
+
+# Copy auth from default profile
+cp -r ~/.openclaw/credentials ~/.openclaw-$AGENT_NAME/credentials 2>/dev/null || true
+mkdir -p ~/.openclaw-$AGENT_NAME/agents/main/agent
+cp ~/.openclaw/agents/main/agent/auth-profiles.json ~/.openclaw-$AGENT_NAME/agents/main/agent/ 2>/dev/null || true
+cp -r ~/.openclaw/identity ~/.openclaw-$AGENT_NAME/identity 2>/dev/null || true
+
+# Create LaunchAgent
+cat > ~/Library/LaunchAgents/ai.openclaw.gateway.$AGENT_NAME.plist << 'PLIST_EOF'
+${plist}
+PLIST_EOF
+
+# Start the agent
+launchctl load ~/Library/LaunchAgents/ai.openclaw.gateway.$AGENT_NAME.plist
+
+echo ""
+echo "✅ ${config.agentEmoji} $AGENT_NAME deployed on port $PORT"
+echo "Now message your bot on ${config.channel} to pair!"
+`;
+}
+
+function generateMemoryScript(config: EquipConfig): string {
+  const name = config.agentName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  return `#!/bin/bash
+# Initialize git-backed memory for ${config.agentName}
+
+set -e
+
+WORKSPACE=~/.openclaw-${name}/workspace
+
+cd "$WORKSPACE"
+
+if [ ! -d .git ]; then
+  git init
+  echo "logs/" > .gitignore
+  echo "*.tmp" >> .gitignore
+  git add -A
+  git commit -m "Initial workspace for ${config.agentName}"
+  echo "✅ Git memory initialized at $WORKSPACE"
+else
+  echo "ℹ️  Git already initialized at $WORKSPACE"
+fi
+
+# Optional: set up auto-commit cron
+echo ""
+echo "To enable auto-commit (recommended), add this to your crontab:"
+echo "  */30 * * * * cd $WORKSPACE && git add -A && git commit -m 'auto-save' --allow-empty 2>/dev/null"
+`;
+}
+
+export function generateAllFiles(config: EquipConfig) {
+  const loadout = getLoadoutBySlug(config.loadoutSlug);
+  if (!loadout) throw new Error(`Unknown loadout: ${config.loadoutSlug}`);
+
+  const soul = generateSoul(config, loadout);
+  const agents = generateAgents(config, loadout);
+  const configJson = generateConfig(config);
+  const plist = generatePlist(config);
+  const deploy = generateDeployScript(config, soul, agents, configJson, plist);
+  const memory = generateMemoryScript(config);
+
+  return { soul, agents, config: configJson, plist, deploy, memory };
+}
