@@ -128,6 +128,7 @@ function generateConfig(config: EquipConfig): string {
 
 function generatePlist(config: EquipConfig): string {
   const name = config.agentName.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const stateDir = `/Users/bfclawnerbot/.openclaw-${name}`;
   return `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -136,26 +137,31 @@ function generatePlist(config: EquipConfig): string {
   <string>ai.openclaw.gateway.${name}</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/usr/local/bin/openclaw</string>
+    <string>/Users/bfclawnerbot/.nvm/versions/node/v22.22.0/bin/node</string>
+    <string>/Users/bfclawnerbot/projects/openclaw/dist/index.js</string>
     <string>gateway</string>
-    <string>start</string>
-    <string>--foreground</string>
+    <string>--port</string>
+    <string>${config.port}</string>
   </array>
   <key>EnvironmentVariables</key>
   <dict>
-    <key>OPENCLAW_PROFILE</key>
-    <string>${name}</string>
-    <key>PORT</key>
-    <string>${config.port}</string>
+    <key>OPENCLAW_STATE_DIR</key>
+    <string>${stateDir}</string>
+    <key>OPENCLAW_CONFIG_PATH</key>
+    <string>${stateDir}/openclaw.json</string>
+    <key>HOME</key>
+    <string>/Users/bfclawnerbot</string>
+    <key>PATH</key>
+    <string>/Users/bfclawnerbot/.nvm/versions/node/v22.22.0/bin:/usr/local/bin:/usr/bin:/bin</string>
   </dict>
   <key>RunAtLoad</key>
   <true/>
   <key>KeepAlive</key>
   <true/>
   <key>StandardOutPath</key>
-  <string>/Users/\${USER}/.openclaw-${name}/logs/stdout.log</string>
+  <string>${stateDir}/logs/stdout.log</string>
   <key>StandardErrorPath</key>
-  <string>/Users/\${USER}/.openclaw-${name}/logs/stderr.log</string>
+  <string>${stateDir}/logs/stderr.log</string>
 </dict>
 </plist>`;
 }
@@ -193,11 +199,17 @@ cat > ~/.openclaw-$AGENT_NAME/openclaw.json << 'CONFIG_EOF'
 ${configJson}
 CONFIG_EOF
 
-# Copy auth from default profile
-cp -r ~/.openclaw/credentials ~/.openclaw-$AGENT_NAME/credentials 2>/dev/null || true
-mkdir -p ~/.openclaw-$AGENT_NAME/agents/main/agent
-cp ~/.openclaw/agents/main/agent/auth-profiles.json ~/.openclaw-$AGENT_NAME/agents/main/agent/ 2>/dev/null || true
-cp -r ~/.openclaw/identity ~/.openclaw-$AGENT_NAME/identity 2>/dev/null || true
+# Copy auth from default profile (if exists)
+if [ -d ~/.openclaw/credentials ]; then
+  cp -r ~/.openclaw/credentials ~/.openclaw-$AGENT_NAME/credentials
+fi
+if [ -f ~/.openclaw/agents/main/agent/auth-profiles.json ]; then
+  mkdir -p ~/.openclaw-$AGENT_NAME/agents/main/agent
+  cp ~/.openclaw/agents/main/agent/auth-profiles.json ~/.openclaw-$AGENT_NAME/agents/main/agent/
+fi
+if [ -d ~/.openclaw/identity ]; then
+  cp -r ~/.openclaw/identity ~/.openclaw-$AGENT_NAME/identity
+fi
 
 # Create LaunchAgent
 cat > ~/Library/LaunchAgents/ai.openclaw.gateway.$AGENT_NAME.plist << 'PLIST_EOF'

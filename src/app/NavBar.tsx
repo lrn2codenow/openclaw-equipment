@@ -55,6 +55,10 @@ export function NavBar() {
                 </a>
               </>
             )}
+            <a href="/equip"
+              className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
+              ⚡ Equip &amp; Deploy
+            </a>
             <a href="/api-docs"
               className="text-zinc-400 hover:text-emerald-400 transition-colors text-sm font-medium hidden sm:inline">
               📡 API
