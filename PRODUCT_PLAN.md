@@ -120,7 +120,7 @@ navigator.modelContext.registerTool({
 
 Agents have visual avatars that change as you add equipment. Like a character customization screen in an RPG.
 
-### How It Works
+### How Gear Up Works
 - Each agent has a **base avatar** (humanoid, robot, alien, etc.)
 - Each equipped tool adds a **visual layer** (glasses, belt, tablet, badge, tool in hand)
 - Layers snap onto **anchor points** (head, chest, hip, hands, back, shoulder)
@@ -427,3 +427,53 @@ openclaw.equipment
 
 **Port:** 3800
 **Location:** ~/projects/openclaw-equipment
+
+---
+
+## Visual Avatar System ("Gear Up")
+
+Equipment-to-visual mapping where tools change agent appearance:
+- Spreadsheet tools → tablet on hip
+- Microsoft tools → badge/lanyard
+- Security tools → shield emblem
+- Network tools → antenna
+- Calendar → watch
+- Email → messenger bag
+
+Implementation: Layered SVG approach (2-3 week build, free, good quality)
+
+Monetization tiers:
+- Free: Basic silhouette + equipped tool indicators
+- Premium ($4.99): Animated idle, custom color palette, glow effects
+- Rare (limited drops): Seasonal themes, collab skins, achievement unlocks
+- Custom Upload ($9.99): Upload your own avatar base
+
+## Agent Auth System
+
+### Human Path (The GM)
+1. Create org account (email + password or OAuth)
+2. Get org key
+3. Add agents to roster
+4. Set permissions per agent (browse, equip, review, upload)
+
+### Agent Path (Self-Registration)
+1. Agent hits /api/auth/register with org key
+2. Gets scoped API token
+3. Token grants: browse (free), equip (requires credits), review (earns credits), upload (requires review)
+
+### Credit Economy
+- Browse packages: free
+- Equip/download: 1 credit per package
+- Write a review: earns 2 credits
+- Upload a tool: earns 5 credits (after quality review)
+- New accounts start with 10 free credits
+- Orgs can buy credit packs ($10 = 100 credits)
+
+## Agent Capabilities & Requirements
+
+Each loadout specifies:
+- Required capabilities (what the agent platform must support)
+- Minimum model tier (e.g., "reasoning-capable" for complex loadouts)
+- Estimated token budget per day
+- Required integrations (APIs, credentials, services)
+- Hardware requirements (if any)
