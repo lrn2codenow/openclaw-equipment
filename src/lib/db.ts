@@ -271,6 +271,7 @@ export function searchPackages(opts: {
     case 'rating': orderBy = 'rating DESC'; break;
     case 'newest': orderBy = 'created_at DESC'; break;
     case 'downloads': orderBy = 'downloads DESC'; break;
+    case 'name': orderBy = 'name ASC'; break;
     case 'relevance': orderBy = opts.q ? 'CASE WHEN name LIKE ? THEN 0 ELSE 1 END, downloads DESC' : 'downloads DESC'; break;
   }
 

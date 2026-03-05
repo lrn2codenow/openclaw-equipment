@@ -1,0 +1,19 @@
+{
+  "name": "equip-cli",
+  "version": "0.1.0",
+  "description": "The Package Manager for AI Agents — install MCP servers, A2A tools, and agent loadouts from the command line",
+  "main": "equip.js",
+  "bin": {
+    "equip": "./equip.js"
+  },
+  "keywords": ["ai", "agents", "mcp", "package-manager", "openclaw"],
+  "author": "OpenClaw",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openclaw/equipment"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

@@ -1,5 +1,5 @@
 import { NextRequest } from 'next/server';
-import { searchPackages, trackApiHit } from '@/lib/db';
+import { searchStaticPackages } from '@/lib/static-data';
 import { jsonResponse, errorResponse, optionsResponse } from '../cors';
 
 export function OPTIONS() { return optionsResponse(); }
@@ -12,28 +12,12 @@ export async function GET(request: NextRequest) {
     return errorResponse('Missing required parameter: query');
   }
 
-  trackApiHit({
-    endpoint: 'webmcp_search',
-    query,
-    userAgent: request.headers.get('user-agent') || undefined,
-    referrer: request.headers.get('referer') || undefined,
-  });
-
   const limit = Math.min(Math.max(parseInt(sp.get('limit') || '10') || 10, 1), 50);
+  const result = searchStaticPackages(query, sp.get('category') || undefined, limit);
 
-  const result = searchPackages({
-    q: query,
-    category: sp.get('category') || undefined,
-    limit,
-  });
-
-  const packages = (result.packages || []).map((p: Record<string, unknown>) => ({
-    name: p.name,
-    slug: p.slug,
-    description: p.description,
-    category: p.category,
-    version: p.version,
-    install: p.install,
+  const packages = result.packages.map(p => ({
+    name: p.name, slug: p.slug, description: p.description,
+    category: p.category, version: p.version, install: p.install,
   }));
 
   return jsonResponse({ packages, total: result.total, query });

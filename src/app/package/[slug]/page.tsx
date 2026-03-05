@@ -1,20 +1,22 @@
-import { getDb, getPackageVersions, getPackageReviews, searchPackagesRaw } from '@/lib/db';
-import { formatNumber, type Package, type Review } from '@/lib/utils';
+import { getStaticPackage, searchStaticPackages } from '@/lib/static-data';
 import { notFound } from 'next/navigation';
+
+interface Review { id: string; reviewer: string; reviewer_type: string; rating: number; review: string; }
 
 export default async function PackageDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const db = getDb();
-  const pkg = db.prepare('SELECT * FROM packages WHERE slug = ?').get(slug) as Package | undefined;
+  const pkg = getStaticPackage(slug);
   if (!pkg) notFound();
 
-  const versions = getPackageVersions(slug) as Array<{ id: string; version: string; changelog: string; created_at: string }>;
-  const reviews = getPackageReviews(slug) as Review[];
-  const tags = JSON.parse(pkg.tags || '[]') as string[];
-  const platforms = JSON.parse(pkg.platform || '["any"]') as string[];
-  const compatibility = JSON.parse(pkg.compatibility || '["any"]') as string[];
-  const { packages: related } = searchPackagesRaw({ category: pkg.category, limit: 4 });
-  const relatedPkgs = (related as Package[]).filter(p => p.id !== pkg.id).slice(0, 3);
+  const versions: Array<{ id: string; version: string; changelog: string; created_at: string }> = [];
+  const reviews: Review[] = [];
+  let tags: string[] = [];
+  try { tags = JSON.parse((pkg.tags as string) || '[]'); } catch { /* */ }
+  let platforms: string[] = ['any'];
+  try { platforms = JSON.parse((pkg.platform as string) || '["any"]'); } catch { /* */ }
+  const compatibility = ['any'];
+  const { packages: related } = searchStaticPackages('', pkg.category as string, 4);
+  const relatedPkgs = related.filter(p => p.slug !== pkg.slug).slice(0, 3);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -31,9 +33,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
             <p className="text-zinc-400">{pkg.description}</p>
             <div className="flex items-center gap-4 mt-3 text-sm text-zinc-500">
               <span>by <strong className="text-zinc-300">{pkg.author}</strong></span>
-              <span className="flex items-center gap-1"><span className="text-amber-400">★</span> {pkg.rating.toFixed(1)} ({pkg.review_count})</span>
-              <span>↓ {formatNumber(pkg.downloads)}</span>
-              <span className="text-emerald-500">● {pkg.seeders} seeders</span>
+              {pkg.source_url && <a href={pkg.source_url as string} target="_blank" className="text-emerald-400 hover:text-emerald-300">Source →</a>}
             </div>
           </div>
 
@@ -41,18 +41,9 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
           <div className="p-5 rounded-lg border border-zinc-800 bg-zinc-900/50 mb-6">
             <h2 className="font-semibold mb-3">Install</h2>
             <div className="bg-zinc-950 p-3 rounded font-mono text-sm text-emerald-400 mb-3 break-all">
-              {pkg.magnet_uri}
+              {pkg.install as string}
             </div>
-            <button
-              className="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2.5 rounded-lg transition-colors text-sm"
-              data-magnet={pkg.magnet_uri}
-              data-slug={pkg.slug}
-            >
-              ⬇ Download with WebTorrent
-            </button>
-            {pkg.size_display && (
-              <p className="text-xs text-zinc-500 mt-2 text-center">Size: {pkg.size_display} • License: {pkg.license}</p>
-            )}
+            <p className="text-xs text-zinc-500 mt-2 text-center">License: {pkg.license as string}</p>
           </div>
 
           {/* Details */}
@@ -60,14 +51,12 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
             <h2 className="font-semibold mb-3">Details</h2>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><span className="text-zinc-500">Category:</span> <span className="capitalize">{pkg.category.replace('-', ' ')}</span></div>
-              {pkg.subcategory && <div><span className="text-zinc-500">Subcategory:</span> <span className="capitalize">{pkg.subcategory.replace('-', ' ')}</span></div>}
               <div><span className="text-zinc-500">License:</span> {pkg.license}</div>
               <div><span className="text-zinc-500">Platforms:</span> {platforms.join(', ')}</div>
               <div><span className="text-zinc-500">Compatibility:</span> {compatibility.join(', ')}</div>
-              {pkg.checksum && <div className="col-span-2"><span className="text-zinc-500">Checksum:</span> <code className="text-xs">{pkg.checksum}</code></div>}
             </div>
             {pkg.source_url && (
-              <a href={pkg.source_url} target="_blank" className="inline-flex items-center gap-1 mt-3 text-sm text-emerald-400 hover:text-emerald-300">
+              <a href={pkg.source_url as string} target="_blank" className="inline-flex items-center gap-1 mt-3 text-sm text-emerald-400 hover:text-emerald-300">
                 Source Code →
               </a>
             )}
@@ -134,7 +123,7 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
                 <h3 className="font-semibold text-sm mb-3 mt-4 pt-4 border-t border-zinc-800">Related Packages</h3>
                 <div className="space-y-2">
                   {relatedPkgs.map(p => (
-                    <a key={p.id} href={`/package/${p.slug}`} className="block text-sm text-zinc-400 hover:text-emerald-400 transition-colors">
+                    <a key={p.slug} href={`/package/${p.slug}`} className="block text-sm text-zinc-400 hover:text-emerald-400 transition-colors">
                       {p.name} <span className="text-zinc-600">v{p.version}</span>
                     </a>
                   ))}
@@ -161,13 +150,13 @@ export default async function PackageDetailPage({ params }: { params: Promise<{ 
               name: "download_package",
               description: "Download ${pkg.name} via WebTorrent",
               inputSchema: { type: "object", properties: { slug: { type: "string" }, version: { type: "string" } } },
-              execute: async () => ({ magnet: "${pkg.magnet_uri.replace(/"/g, '\\"')}", status: "ready" })
+              execute: async () => ({ install: "${(pkg.install as string || '').replace(/"/g, '\\"')}", status: "ready" })
             });
             mc.registerTool({
               name: "get_install_instructions",
               description: "Get install instructions for ${pkg.name}",
               inputSchema: { type: "object", properties: { slug: { type: "string" }, platform: { type: "string" } } },
-              execute: async () => ({ magnet: "${pkg.magnet_uri.replace(/"/g, '\\"')}", platforms: ${pkg.platform}, instructions: "Download via magnet link and extract" })
+              execute: async () => ({ install: "${(pkg.install as string || '').replace(/"/g, '\\"')}", platforms: ${pkg.platform || '["any"]'}, instructions: "Run the install command" })
             });
             mc.registerTool({
               name: "submit_review",

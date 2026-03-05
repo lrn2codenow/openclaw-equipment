@@ -52,6 +52,12 @@ const categories = [
   { icon: '🎨', name: 'Creative', desc: 'Image generation, video processing, audio/TTS' },
 ];
 
+const stats = [
+  { value: '184', label: 'Packages' },
+  { value: '6', label: 'Loadouts' },
+  { value: '6', label: 'Agent Profiles' },
+];
+
 export default function HomePage() {
   const headline = 'The Package Manager for AI Agents';
   const { displayed, done } = useTypingEffect(headline, 45);
@@ -68,19 +74,70 @@ export default function HomePage() {
             <span className="text-emerald-400">{displayed}</span>
             <span className={`inline-block w-[3px] h-[1em] bg-emerald-400 align-middle ml-1 ${done ? 'animate-pulse' : ''}`} />
           </h1>
-          <p className="text-lg sm:text-xl text-zinc-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-            Your agent finds, downloads, and installs the tools it needs.
-            You discover and curate. Everyone wins.
+          <p className="text-lg sm:text-xl text-zinc-400 mb-8 max-w-2xl mx-auto leading-relaxed">
+            A working registry of 184 tools, loadouts, and agent profiles — live now.
+            Your agent finds, installs, and configures what it needs. You curate and discover.
           </p>
+
+          {/* Stats */}
+          <div className="flex items-center justify-center gap-8 sm:gap-12 mb-10">
+            {stats.map((s) => (
+              <div key={s.label} className="text-center">
+                <div className="text-2xl sm:text-3xl font-bold font-mono text-emerald-400">{s.value}</div>
+                <div className="text-xs sm:text-sm text-zinc-500 font-mono">{s.label}</div>
+              </div>
+            ))}
+          </div>
+
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button className="px-8 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-400 font-medium cursor-default">
-              Browse Tools <span className="text-zinc-600 text-sm ml-1">(coming soon)</span>
-            </button>
-            <a href="#waitlist" className="px-8 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold transition-colors">
-              Join the Waitlist →
+            <a href="/packages" className="px-8 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold transition-colors">
+              Browse Tools →
+            </a>
+            <a href="/loadouts" className="px-8 py-3 rounded-lg bg-zinc-800 border border-zinc-700 text-zinc-300 hover:border-emerald-500/40 font-medium transition-colors">
+              View Loadouts
             </a>
           </div>
         </div>
+      </section>
+
+      {/* Quick Start */}
+      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+        <Section>
+          <div className="text-center mb-8">
+            <h2 className="text-2xl sm:text-3xl font-bold font-mono mb-4">Quick Start</h2>
+            <p className="text-zinc-400">Install the CLI and start equipping your agent in seconds.</p>
+          </div>
+          <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 max-w-2xl mx-auto font-mono text-sm">
+            <div className="space-y-3">
+              <div>
+                <span className="text-zinc-500"># Install the CLI</span>
+              </div>
+              <div>
+                <span className="text-emerald-400">$</span> <span className="text-zinc-300">npm install -g @openclaw/equip</span>
+              </div>
+              <div className="pt-2">
+                <span className="text-zinc-500"># Search for tools</span>
+              </div>
+              <div>
+                <span className="text-emerald-400">$</span> <span className="text-zinc-300">equip search &quot;calendar&quot;</span>
+              </div>
+              <div className="text-zinc-600 pl-4">→ google-calendar-mcp, cal-sync, ical-reader ...</div>
+              <div className="pt-2">
+                <span className="text-zinc-500"># Install a single tool</span>
+              </div>
+              <div>
+                <span className="text-emerald-400">$</span> <span className="text-zinc-300">equip install google-calendar-mcp</span>
+              </div>
+              <div className="pt-2">
+                <span className="text-zinc-500"># Or install an entire loadout</span>
+              </div>
+              <div>
+                <span className="text-emerald-400">$</span> <span className="text-zinc-300">equip loadout chief-of-staff</span>
+              </div>
+              <div className="text-zinc-600 pl-4">→ Installing 12 tools for the Chief of Staff profile...</div>
+            </div>
+          </div>
+        </Section>
       </section>
 
       {/* The Problem */}
@@ -115,8 +172,57 @@ export default function HomePage() {
         </Section>
       </section>
 
-      {/* How It Works — Two Paths */}
+      {/* Harness Engineering */}
       <section className="bg-zinc-900/40 border-y border-zinc-800/60 py-20">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Section>
+            <div className="text-center mb-12">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-mono mb-6">
+                🔬 Harness Engineering
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-bold font-mono mb-4">Agents Need More Than Tools</h2>
+              <p className="text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+                Agents fail when their environment is illegible, their results are unverifiable, and their tooling is too specific.
+                Equipment solves all three through <span className="text-emerald-400 font-semibold">Loadouts</span>.
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {[
+                {
+                  title: 'Legible Environments',
+                  body: 'Loadouts configure tools with clear schemas, expected outputs, and structured error handling. Your agent always knows what it\'s working with.',
+                  icon: '👁️',
+                  color: 'text-cyan-400',
+                  border: 'border-cyan-500/20',
+                },
+                {
+                  title: 'Verification Tools',
+                  body: 'Every loadout includes validators and health checks. Your agent can confirm a tool is working before relying on it in production.',
+                  icon: '✅',
+                  color: 'text-emerald-400',
+                  border: 'border-emerald-500/20',
+                },
+                {
+                  title: 'Generic Tooling',
+                  body: 'Instead of one-off scripts, Equipment provides composable building blocks. Fetch, transform, store, notify — mix and match across any workflow.',
+                  icon: '🧱',
+                  color: 'text-amber-400',
+                  border: 'border-amber-500/20',
+                },
+              ].map((item) => (
+                <div key={item.title} className={`p-6 rounded-xl border ${item.border} bg-zinc-950/60`}>
+                  <div className="text-3xl mb-4">{item.icon}</div>
+                  <h3 className={`font-bold text-lg mb-3 font-mono ${item.color}`}>{item.title}</h3>
+                  <p className="text-zinc-400 text-sm leading-relaxed">{item.body}</p>
+                </div>
+              ))}
+            </div>
+          </Section>
+        </div>
+      </section>
+
+      {/* Two Paths */}
+      <section className="py-20">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <Section>
             <h2 className="text-2xl sm:text-3xl font-bold font-mono text-center mb-4">Two Paths, One Platform</h2>
@@ -130,16 +236,13 @@ export default function HomePage() {
                 </div>
                 <div className="font-mono text-xs text-zinc-500 bg-zinc-900 rounded-lg p-4 mb-6 space-y-1.5 border border-zinc-800">
                   <div><span className="text-cyan-400">→</span> Agent needs a tool</div>
-                  <div><span className="text-cyan-400">→</span> Browses openclaw.equipment</div>
+                  <div><span className="text-cyan-400">→</span> Searches the registry via CLI or API</div>
                   <div><span className="text-cyan-400">→</span> Finds what it needs</div>
                   <div><span className="text-cyan-400">→</span> Downloads + installs</div>
                   <div><span className="text-emerald-400">✓</span> Back to work. No human required.</div>
                 </div>
-                <p className="text-zinc-400 text-sm leading-relaxed mb-3">
-                  Your agent navigates the site, finds exactly the tool it needs, and installs it — without UI complexity getting in the way.
-                </p>
-                <p className="text-zinc-500 text-sm leading-relaxed">
-                  WebMCP makes the entire catalog agent-readable. Your agent browses like a human, but thinks like an engineer.
+                <p className="text-zinc-400 text-sm leading-relaxed">
+                  Your agent uses the CLI or browses the site via WebMCP to find and install exactly what it needs — no human in the loop.
                 </p>
               </div>
               {/* Path B */}
@@ -155,11 +258,8 @@ export default function HomePage() {
                   <div><span className="text-emerald-400">→</span> Agent installs it</div>
                   <div><span className="text-cyan-400">✓</span> You curate, agent executes.</div>
                 </div>
-                <p className="text-zinc-400 text-sm leading-relaxed mb-3">
+                <p className="text-zinc-400 text-sm leading-relaxed">
                   Explore tools you think would help your agent, and with one click, direct them to install it.
-                </p>
-                <p className="text-zinc-500 text-sm leading-relaxed">
-                  Browse, discover, curate. Let your agent handle the rest.
                 </p>
               </div>
             </div>
@@ -171,14 +271,13 @@ export default function HomePage() {
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
         <Section>
           <h2 className="text-2xl sm:text-3xl font-bold font-mono text-center mb-4">What&apos;s Inside</h2>
-          <p className="text-zinc-500 text-center mb-12 max-w-lg mx-auto">Real categories. Real tools on the way. No fake data.</p>
+          <p className="text-zinc-500 text-center mb-12 max-w-lg mx-auto">184 packages across 8 categories. Growing daily.</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {categories.map((cat) => (
               <div key={cat.name} className="p-5 rounded-xl border border-zinc-800 bg-zinc-900/40 hover:border-emerald-500/30 transition-colors group">
                 <div className="text-2xl mb-3">{cat.icon}</div>
                 <h3 className="font-semibold text-sm font-mono group-hover:text-emerald-400 transition-colors">{cat.name}</h3>
                 <p className="text-xs text-zinc-500 mt-1.5 leading-relaxed">{cat.desc}</p>
-                <span className="inline-block mt-3 text-[10px] font-mono text-zinc-600 bg-zinc-800/60 rounded px-2 py-0.5">coming soon</span>
               </div>
             ))}
           </div>
@@ -204,54 +303,12 @@ export default function HomePage() {
                 </p>
                 <div className="flex flex-wrap gap-3 text-xs font-mono">
                   <span className="px-3 py-1 rounded bg-zinc-800 text-zinc-400">Chrome 136+ supported</span>
-                  <span className="px-3 py-1 rounded bg-zinc-800 text-zinc-400">Stable coming soon</span>
                   <span className="px-3 py-1 rounded bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">Agent-native browsing</span>
                 </div>
               </div>
             </div>
           </Section>
         </div>
-      </section>
-
-      {/* Agent-Native Access */}
-      <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <Section>
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold font-mono mb-4">Agent-Native Access</h2>
-            <p className="text-zinc-400 mb-6">
-              OpenClaw Equipment speaks your language. WebMCP-enabled for direct agent discovery.
-            </p>
-            <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-6 max-w-lg mx-auto text-left font-mono text-sm">
-              <p className="text-zinc-500 mb-2"># Your agent can find tools directly</p>
-              <p className="text-emerald-400">GET /.well-known/webmcp.json</p>
-            </div>
-            <p className="text-zinc-500 text-sm mt-4">No API key required for browsing. Just point your agent here.</p>
-          </div>
-        </Section>
-      </section>
-
-      {/* Waitlist */}
-      <section id="waitlist" className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <Section>
-          <div className="text-center">
-            <h2 className="text-2xl sm:text-3xl font-bold font-mono mb-4">Get Early Access</h2>
-            <p className="text-zinc-400 mb-2">We&apos;re building the catalog now. Real tools, tested by real agents.</p>
-            <p className="text-zinc-500 text-sm mb-8">First 100 equipment providers get featured placement.</p>
-            <form onSubmit={(e) => e.preventDefault()} className="flex flex-col sm:flex-row items-center justify-center gap-3 max-w-md mx-auto mb-8">
-              <input
-                type="email"
-                placeholder="you@example.com"
-                className="w-full sm:flex-1 px-4 py-3 rounded-lg bg-zinc-900 border border-zinc-700 text-zinc-100 placeholder-zinc-600 focus:outline-none focus:border-emerald-500 font-mono text-sm"
-              />
-              <button type="submit" className="w-full sm:w-auto px-6 py-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-semibold transition-colors text-sm whitespace-nowrap">
-                Join Waitlist
-              </button>
-            </form>
-            <p className="text-xs text-zinc-600 font-mono">
-              Currently in use: our own agents use OpenClaw Equipment daily to manage tools across 12+ projects.
-            </p>
-          </div>
-        </Section>
       </section>
 
       {/* Open Source */}
@@ -266,9 +323,6 @@ export default function HomePage() {
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
                 GitHub
               </a>
-              <span className="px-5 py-2.5 rounded-lg border border-zinc-800 text-sm font-mono text-zinc-500 cursor-default">
-                Discord — coming soon
-              </span>
             </div>
             <p className="text-sm text-zinc-500">Submit your tools. Rate and review. Help build the ecosystem.</p>
           </div>

@@ -36,11 +36,8 @@ export default function PackageCard({ pkg }: { pkg: Package }) {
       <p className="text-xs text-zinc-400 line-clamp-2 mb-3">{pkg.description}</p>
       <div className="flex items-center justify-between text-[11px] text-zinc-500">
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1">
-            <span className="text-amber-400">★</span> {pkg.rating.toFixed(1)}
-          </span>
-          <span>↓ {formatNumber(pkg.downloads)}</span>
-          {pkg.seeders > 0 && <span className="text-emerald-500">● {pkg.seeders} seeds</span>}
+          {pkg.rating != null && <span className="flex items-center gap-1"><span className="text-amber-400">★</span> {Number(pkg.rating || 0).toFixed(1)}</span>}
+          {pkg.downloads != null && <span>↓ {formatNumber(pkg.downloads)}</span>}
         </div>
         <span className="text-zinc-600">v{pkg.version}</span>
       </div>

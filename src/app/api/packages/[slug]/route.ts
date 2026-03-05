@@ -1,26 +1,26 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPackageBySlug, getPackageVersions, getPackageReviews, trackApiHit } from '@/lib/db';
+import { getStaticPackage } from '@/lib/static-data';
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type',
+};
+
+export async function OPTIONS() {
+  return new NextResponse(null, { status: 204, headers: corsHeaders });
+}
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ slug: string }> }
 ) {
   const { slug } = await params;
+  const pkg = getStaticPackage(slug);
 
-  trackApiHit({
-    endpoint: 'package_detail',
-    slug,
-    userAgent: request.headers.get('user-agent') || undefined,
-    referrer: request.headers.get('referer') || undefined,
-  });
-
-  const pkg = getPackageBySlug(slug);
   if (!pkg) {
-    return NextResponse.json({ error: 'Package not found' }, { status: 404 });
+    return NextResponse.json({ error: 'Package not found' }, { status: 404, headers: corsHeaders });
   }
 
-  const versions = getPackageVersions(slug);
-  const reviews = getPackageReviews(slug);
-
-  return NextResponse.json({ ...pkg, versions, reviews });
+  return NextResponse.json(pkg, { headers: corsHeaders });
 }

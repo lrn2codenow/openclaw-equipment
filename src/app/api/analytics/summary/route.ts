@@ -1,16 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAnalyticsSummary } from '@/lib/db';
+import { NextResponse } from 'next/server';
+import { getStaticPackages } from '@/lib/static-data';
 
-export async function GET(request: NextRequest) {
-  // Simple protection: require x-internal-key header or localhost
-  const host = request.headers.get('host') || '';
-  const internalKey = request.headers.get('x-internal-key');
-  const isLocal = host.startsWith('localhost') || host.startsWith('127.0.0.1');
-
-  if (!isLocal && internalKey !== process.env.ANALYTICS_KEY) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const summary = getAnalyticsSummary();
-  return NextResponse.json(summary);
+export async function GET() {
+  return NextResponse.json({
+    total_packages: getStaticPackages().length,
+    total_api_hits: 0,
+    message: 'Analytics coming soon',
+  }, { headers: { 'Access-Control-Allow-Origin': '*' } });
 }

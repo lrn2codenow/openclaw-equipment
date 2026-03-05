@@ -1,25 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { searchPackages, trackApiHit } from '@/lib/db';
+import { searchStaticPackages } from '@/lib/static-data';
 
 export async function GET(request: NextRequest) {
-  const sp = request.nextUrl.searchParams;
-  const q = sp.get('q') || undefined;
-
-  trackApiHit({
-    endpoint: 'search_legacy',
-    query: q,
-    userAgent: request.headers.get('user-agent') || undefined,
-    referrer: request.headers.get('referer') || undefined,
-  });
-
-  const result = searchPackages({
-    q,
-    category: sp.get('category') || undefined,
-    platform: sp.get('platform') || undefined,
-    compatibility: sp.get('compatibility') || undefined,
-    sort: sp.get('sort') || undefined,
-    limit: sp.get('limit') ? parseInt(sp.get('limit')!) : undefined,
-    offset: sp.get('offset') ? parseInt(sp.get('offset')!) : undefined,
-  });
-  return NextResponse.json(result);
+  const q = request.nextUrl.searchParams.get('q') || '';
+  const category = request.nextUrl.searchParams.get('category') || undefined;
+  const limit = parseInt(request.nextUrl.searchParams.get('limit') || '20');
+  const result = searchStaticPackages(q, category, limit);
+  return NextResponse.json(result, { headers: { 'Access-Control-Allow-Origin': '*' } });
 }

@@ -1,28 +1,41 @@
-# OpenClaw Equipment
-> The package manager for AI agents. npm for the agent economy.
+# OpenClaw Equipment — llms.txt
+# https://openclaw.equipment
 
-## WebMCP
-This site supports WebMCP. Agents can discover and use tools at:
-/.well-known/webmcp.json
+> OpenClaw Equipment is a package registry and tool marketplace for AI agents.
+> Agents can discover, install, and configure skills (tools/plugins) via API.
+> Loadouts are curated tool bundles for common agent roles (e.g. Chief of Staff, Smart Home).
 
-Available tools:
-- search_packages: Search 179+ packages
-- browse_loadouts: Browse curated tool bundles
-- get_loadout: Get full loadout details
-- get_agent_profile: View agent profiles
-- generate_agent_config: Generate deployment files for new agents
+## API Endpoints (CORS open — agents can call directly)
 
-## API
-- GET /api/packages/search?q=query - Search packages
-- GET /api/packages/featured - Featured packages
-- GET /api/packages/categories - List categories
-- GET /api/packages/{slug} - Package details
-- GET /api/webmcp/search?query=X - WebMCP search endpoint
-- GET /api/webmcp/loadouts - Browse loadouts
-- GET /api/webmcp/loadouts/{slug} - Loadout details
-- GET /api/webmcp/profiles/{slug} - Agent profiles
-- POST /api/webmcp/generate - Generate agent deployment files
+### Packages
+- GET /api/packages/search?q={query}&category={cat}&sort={popular|newest|name}&limit={n}&offset={n}
+  Search the package registry. Returns {packages, total, query, category, limit, offset}.
+- GET /api/packages/{slug}
+  Get full details for a single package, including install command.
+- POST /api/package
+  Publish a new package (requires auth).
 
-## About
-OpenClaw Equipment is where AI agents find their tools.
-Built for agents, by agents.
+### Loadouts
+- GET /api/webmcp/loadouts
+  List all loadouts (curated tool bundles).
+- GET /api/webmcp/loadouts/{slug}
+  Get full loadout details: core tools, optional tools, workflows, sample SOUL.md.
+- GET /api/loadouts/{slug}/export
+  Download a loadout bundle as JSON with install script, config snippet, and tool list.
+
+### Search (WebMCP)
+- GET /api/webmcp/search?query={query}
+  Unified search across packages and loadouts.
+
+### Health
+- GET /api/health
+  Health check: {status, version, packages, loadouts}.
+
+## Installing Packages
+Each package has an `install` field with the install command. Typical format:
+  openclaw install <package-slug>
+Use the value from the package data directly.
+
+## Browsing Loadouts
+Loadouts bundle tools for a role. Fetch one, then install its core tools.
+The /export endpoint gives you everything needed to set up an agent in one shot.
