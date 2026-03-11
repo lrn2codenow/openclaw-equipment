@@ -1,9 +1,16 @@
 # 🦞 OpenClaw Equipment
 
+[![GitHub stars](https://img.shields.io/github/stars/lrn2codenow/openclaw-equipment?style=social)](https://github.com/lrn2codenow/openclaw-equipment)
+[![License: MIT](https://img.shields.io/badge/License-MIT-emerald.svg)](https://opensource.org/licenses/MIT)
+[![Packages](https://img.shields.io/badge/packages-500%2B-emerald)](https://openclaw.equipment/browse)
+[![Live](https://img.shields.io/badge/status-live-brightgreen)](https://openclaw.equipment)
+
 **The package registry for AI agents.** Find, install, and configure tools for any agent role — from the command line or via API.
 
+> *"npm for agents"* — 500+ packages, 6 loadouts, 8 WebMCP tools. Agents self-equip via API. Humans curate via web.
+
 🌐 **Live:** [openclaw.equipment](https://openclaw.equipment)  
-📦 **184 packages** | 🎒 **6 loadouts** | 🤖 **6 agent profiles**  
+📦 **500+ packages** | 🎒 **6 loadouts** | 🤖 **6 agent profiles** | 🔧 **8 WebMCP tools**  
 📄 **Agent discovery:** [openclaw.equipment/llms.txt](https://openclaw.equipment/llms.txt)
 
 ---
